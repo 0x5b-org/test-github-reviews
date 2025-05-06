@@ -23,19 +23,19 @@ const lastPushes = [true, false];
 
 const { data: main } = await tokentokit.rest.git.getRef({
   owner: '0x5b-org',
-  repo: 'repository-config-testbed',
+  repo: 'test-github-reviews',
   ref: 'heads/main'
 });
 
 const rulesets = await tokentokit.paginate(tokentokit.rest.repos.getRepoRulesets, {
   owner: '0x5b-org',
-  repo: 'repository-config-testbed',
+  repo: 'test-github-reviews',
   includes_parents: false
 });
 
 const branches = await tokentokit.paginate(tokentokit.rest.repos.listBranches, {
   owner: '0x5b-org',
-  repo: 'repository-config-testbed'
+  repo: 'test-github-reviews'
 });
 
 describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (dismiss-stale: %s, last-push: %s)', async ([dismissStale, lastPush]) => {
@@ -50,7 +50,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
       if (branch) {
         await apptokit.rest.git.deleteRef({
           owner: '0x5b-org',
-          repo: 'repository-config-testbed',
+          repo: 'test-github-reviews',
           ref: `heads/${branch.name}`
         });
       }
@@ -67,7 +67,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     // Upsert ruleset
     const ruleset = {
       owner: '0x5b-org',
-      repo: 'repository-config-testbed',
+      repo: 'test-github-reviews',
       name: `Reviews (dismiss-stale: ${dismissStale}, last-push: ${lastPush})`,
       target: 'branch',
       enforcement: 'active',
@@ -99,7 +99,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     for (const branchType of ['main', 'feature']) {
       await tokentokit.rest.git.createRef({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         ref: `refs/heads/${branchPrefix}/${branchType}`,
         sha: main.object.sha
       });
@@ -108,7 +108,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     // Push file to feature branch
     await tokentokit.rest.repos.createOrUpdateFileContents({
       owner: '0x5b-org',
-      repo: 'repository-config-testbed',
+      repo: 'test-github-reviews',
       path: 'test_file',
       message: 'Update feature branch',
       content: Buffer.from('Hello World!').toString('base64'),
@@ -118,7 +118,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     // Open Pull Request
     const { data: pull } = await tokentokit.rest.pulls.create({
       owner: '0x5b-org',
-      repo: 'repository-config-testbed',
+      repo: 'test-github-reviews',
       title: `Test Reviews (dismiss-stale: ${dismissStale}, last-push: ${lastPush})`,
       head: `${branchPrefix}/feature`,
       base: `${branchPrefix}/main`
@@ -129,7 +129,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     // Approve PR (by app)
     await apptokit.rest.pulls.createReview({
       owner: '0x5b-org',
-      repo: 'repository-config-testbed',
+      repo: 'test-github-reviews',
       pull_number: pullRequest.number,
       event: 'APPROVE'
     });
@@ -139,13 +139,13 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     beforeAll(async () => {
       const { data: headCommit } = await tokentokit.rest.git.getCommit({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         commit_sha: pullRequest.head.sha
       });
       
       const { data: commit } = await tokentokit.rest.git.createCommit({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         message: 'Empty commit',
         parents: [pullRequest.head.sha],
         tree: headCommit.tree.sha
@@ -153,7 +153,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
 
       await tokentokit.rest.git.updateRef({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         ref: `heads/${branchPrefix}/feature`,
         sha: commit.sha
       });
@@ -164,7 +164,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
 
       const { data: pull } = await tokentokit.rest.pulls.get({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         pull_number: pullRequest.number
       });
   
@@ -177,7 +177,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     beforeAll(async () => {
       await apptokit.rest.repos.createOrUpdateFileContents({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         path: 'test_file_2',
         message: 'Change feature branch',
         content: Buffer.from('Hello World!').toString('base64'),
@@ -190,7 +190,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
       
       const { data: pull } = await tokentokit.rest.pulls.get({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         pull_number: pullRequest.number
       });
 
@@ -205,7 +205,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
     beforeAll(async () => {
       await apptokit.rest.pulls.createReview({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         pull_number: pullRequest.number,
         event: 'APPROVE'
       });
@@ -216,7 +216,7 @@ describe.concurrent.for(_.product(dismissStales, lastPushes))('Require Reviews (
       
       const { data: pull } = await tokentokit.rest.pulls.get({
         owner: '0x5b-org',
-        repo: 'repository-config-testbed',
+        repo: 'test-github-reviews',
         pull_number: pullRequest.number
       });
   
